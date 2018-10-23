@@ -1,0 +1,12 @@
+# IDE files
+.idea
+CMakeLists.txt
+cmake-build-debug
+tpchbenchmark/.idea
+tpchbenchmark/tpchbenchmark.iml
+
+# Maven generated files
+tpchbenchmark/target
+
+# TPC-H import data
+tpchdata
