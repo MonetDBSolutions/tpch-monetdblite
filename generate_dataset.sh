@@ -90,7 +90,7 @@ fi
 
 # Compile TPC-H dbgen
 
-tpch_gen_dir=$(dirname `realpath $0`)/tpch-dbgen
+tpch_gen_dir=$(dirname `realpath $0`)/tpch-tools/dbgen
 
 [[ -d "$tpch_gen_dir" ]] || abort_script "$tpch_gen_dir directory not found (Did you forget to clone the git submodule?)"
 
@@ -105,7 +105,7 @@ if [[ ! -f "$tpch_gen_dir/dbgen" ]]; then
 	make -C "$tpch_gen_dir" || abort_script "Failure building the generation utility in $tpch_gen_dir - Make failure"
 	[[ -f "$tpch_gen_dir/dbgen" ]] || abort_script "Although the build of $tpch_gen_dir/dbgen has supposedly succeeded - the binary is missing."
 
-	popd >&/dev/null
+	popd > /dev/null
 fi
 
 # Generate TPC-H database CSV files
@@ -118,7 +118,7 @@ if [[ ! -d "$tpch_data_dir" ]] ; then
 	pushd "$tpch_data_dir" >/dev/null
 	"$tpch_gen_dir/dbgen" -b "$tpch_gen_dir/dists.dss" -s "$scale_factor" -v || abort_script "Failed generating TPC-H data"
 
-	popd >&/dev/null
+	popd > /dev/null
 fi
 
 # Begin importing database
@@ -133,6 +133,6 @@ mvn package || abort_script "Error while compiling tpchbenchmark maven project"
 
 mvn exec:java -Dexec.mainClass="nl.cwi.monetdb.TPCH.TPCHMain" -Dexec.args="populate $database $output_path $tpch_data_dir" || abort_script "Error while importing to $output_path directory"
 
-popd >&/dev/null
+popd > /dev/null
 
 echo "TPC-H scale factor $scale_factor was successfully imported to $database database on $output_path directory"

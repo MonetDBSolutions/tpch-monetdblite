@@ -1,0 +1,3 @@
+[submodule "tpch-tools"]
+	path = tpch-tools
+	url = git@github.com:eyalroz/tpch-tools.git

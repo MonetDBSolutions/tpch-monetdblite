@@ -75,7 +75,7 @@ is_in_list "$database" 'MonetDBLite-Java' 'H2' || abort_script "Database $databa
 
 # Compile TPC-H dbgen
 
-tpch_gen_dir=$(dirname `realpath $0`)/tpch-dbgen
+tpch_gen_dir=$(dirname `realpath $0`)/tpch-tools/dbgen
 
 [[ -d "$tpch_gen_dir" ]] || abort_script "$tpch_gen_dir directory not found (Did you forget to clone the git submodule?)"
 
@@ -90,26 +90,39 @@ if [[ ! -f "$tpch_gen_dir/qgen" ]]; then
 	make -C "$tpch_gen_dir" || abort_script "Failure building the generation utility in $tpch_gen_dir - Make failure"
 	[[ -f "$tpch_gen_dir/qgen" ]] || abort_script "Although the build of $tpch_gen_dir/qgen has supposedly succeeded - the binary is missing."
 
-	popd >&/dev/null
+	popd > /dev/null
 fi
 
 # Generate TPC-H query files
 
 tpch_query_dir=$(dirname `realpath $0`)/tpchdata/"$database"/queries/sf"$scale_factor"
+tpch_queries_source_dir=$(dirname `realpath $0`)/tpch-tools/benchmark_queries
 
 if [[ ! -d "$tpch_query_dir" ]] ; then
 	mkdir -p "$tpch_query_dir" || abort_script "Can't create staging directory $tpch_query_dir for generating TPC-H query data"
 
 	pushd "$tpch_gen_dir" >/dev/null
 
-	for ((i=1; i <= 22 ; i+=1))
-	do
-		padded=$(printf '%02d' "$i")
-		type tail 1>/dev/null || abort_script "tail tool unavailable"
-		"$tpch_gen_dir/qgen" -b dists.dss -v  -d -N -s "$scale_factor" "$i" | tail -n +6 > "$tpch_query_dir/$padded.sql" || abort_script "Failed generating TPC-H query file"
-	done
+	case "$database" in
+		'MonetDBLite-Java')
+			for ((i=1; i <= 22 ; i+=1))
+			do
+				if [[ "$i" == "15" ]]; then
+					cp "$tpch_queries_source_dir/15a.sql" "$tpch_query_dir/15.sql" || abort_script "Failed generating TPC-H query file"
+				else
+					padded=$(printf '%02d' "$i")
+					cp "$tpch_queries_source_dir/$padded.sql" "$tpch_query_dir/$padded.sql" || abort_script "Failed generating TPC-H query file"
+				fi
+			done
+			;;
+		'H2')
+			;;
+		*)
+			abort_script "Unknown database $database"
+			;;
+	esac
 
-	popd >&/dev/null
+	popd > /dev/null
 fi
 
 # Run TPC-H benchmark
@@ -124,6 +137,6 @@ mvn package || abort_script "Error while compiling tpchbenchmark maven project"
 
 mvn exec:java -Dexec.mainClass="nl.cwi.monetdb.TPCH.TPCHMain" -Dexec.args="evaluate $database $input_path $tpch_query_dir" || abort_script "Error while running TPC-H benchmark"
 
-popd >&/dev/null
+popd > /dev/null
 
 echo "TPC-H benchmark on scale factor $scale_factor successfully ran on $database database on $input_path directory"
