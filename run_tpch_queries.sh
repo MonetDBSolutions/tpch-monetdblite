@@ -24,23 +24,15 @@ function is_in_list {
 	[[ -n "$found" ]]
 }
 
-function get_platform {
-	if [ "$(uname)" == "Darwin" ]; then echo "MAC"
-	elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then echo "LINUX"
-	elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then echo "WIN32"
-	elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]; then echo "WIN32"
-	fi
-}
-
 function mhelp {
-	echo "Usage: $0 --sf <scale factor> --database <MonetDBLite-Java | H2> --path <path> "
-	echo "scale factor 1 is 1GB database"
-	echo "farm path should be an absolute path"
+	echo "Usage: $0 --database <MonetDBLite-Java | H2> --path <path> "
+	echo "It's assumed that the database contains a TPC-H schema with an appropriate scale factor"
+	echo "path should be absolute"
 }
 
 scale_factor=
 database=
-output_path=
+input_path=
 
 while [ "$#" -gt 0 ]; do
 	case "$1" in
@@ -56,7 +48,7 @@ while [ "$#" -gt 0 ]; do
 			shift
 			;;
 		-p|--path)
-			output_path="$2"
+			input_path="$2"
 			shift
 			shift
 			;;
@@ -71,22 +63,15 @@ while [ "$#" -gt 0 ]; do
 	esac
 done
 
-platform="$(get_platform)"
-if [ "$platform" != "LINUX" ]; then
-	abort_script 'Only Linux platform supported'
-fi
-
 [[ -n "$scale_factor" ]] || abort_script 'Scale factor not set'
 
 [[ -n "$database" ]] || abort_script 'Database not set'
 
 is_in_list "$database" 'MonetDBLite-Java' 'H2' || abort_script "Database $database not supported"
 
-[[ -n "$output_path" ]] || abort_script 'Output path not set'
+[[ -n "$input_path" ]] || abort_script 'Input path not set'
 
-if [[ ! -d "$output_path" ]] ; then
-	mkdir -p "$output_path" || abort_script "Can't create output directory $output_path for the database"
-fi
+[[ -d "$input_path" ]] || abort_script "Path $input_path is not a directory"
 
 # Compile TPC-H dbgen
 
@@ -94,8 +79,8 @@ tpch_gen_dir=$(dirname `realpath $0`)/tpch-dbgen
 
 [[ -d "$tpch_gen_dir" ]] || abort_script "$tpch_gen_dir directory not found (Did you forget to clone the git submodule?)"
 
-if [[ ! -f "$tpch_gen_dir/dbgen" ]]; then
-	pushd "$tpch_gen_dir"
+if [[ ! -f "$tpch_gen_dir/qgen" ]]; then
+	pushd "$tpch_gen_dir" >/dev/null
 
 	type cmake 1>/dev/null || abort_script "CMake build tool unavailable"
 	cmake -DMACHINE=LINUX -DDATABASE=VECTORWISE . || abort_script "Failure building the generation utility in $tpch_gen_dir during CMake"
@@ -103,25 +88,31 @@ if [[ ! -f "$tpch_gen_dir/dbgen" ]]; then
 	[[ -f "$tpch_gen_dir/Makefile" ]] || abort_script "Could not find or generate a Makefile in $tpch_gen_dir for building the generator utility"
 	type make 1>/dev/null || abort_script "GNU Make unavailable"
 	make -C "$tpch_gen_dir" || abort_script "Failure building the generation utility in $tpch_gen_dir - Make failure"
-	[[ -f "$tpch_gen_dir/dbgen" ]] || abort_script "Although the build of $tpch_gen_dir/dbgen has supposedly succeeded - the binary is missing."
+	[[ -f "$tpch_gen_dir/qgen" ]] || abort_script "Although the build of $tpch_gen_dir/qgen has supposedly succeeded - the binary is missing."
 
 	popd >&/dev/null
 fi
 
-# Generate TPC-H database CSV files
+# Generate TPC-H query files
 
-tpch_data_dir=$(dirname `realpath $0`)/tpchdata/"$database"/data/sf"$scale_factor"
+tpch_query_dir=$(dirname `realpath $0`)/tpchdata/"$database"/queries/sf"$scale_factor"
 
-if [[ ! -d "$tpch_data_dir" ]] ; then
-	mkdir -p "$tpch_data_dir" || abort_script "Can't create staging directory $tpch_data_dir for generating TPC-H data"
+if [[ ! -d "$tpch_query_dir" ]] ; then
+	mkdir -p "$tpch_query_dir" || abort_script "Can't create staging directory $tpch_query_dir for generating TPC-H query data"
 
-	pushd "$tpch_data_dir" >/dev/null
-	"$tpch_gen_dir/dbgen" -b "$tpch_gen_dir/dists.dss" -s "$scale_factor" -v || abort_script "Failed generating TPC-H data"
+	pushd "$tpch_gen_dir" >/dev/null
+
+	for ((i=1; i <= 22 ; i+=1))
+	do
+		padded=$(printf '%02d' "$i")
+		type tail 1>/dev/null || abort_script "tail tool unavailable"
+		"$tpch_gen_dir/qgen" -b dists.dss -v  -d -N -s "$scale_factor" "$i" | tail -n +6 > "$tpch_query_dir/$padded.sql" || abort_script "Failed generating TPC-H query file"
+	done
 
 	popd >&/dev/null
 fi
 
-# Begin importing database
+# Run TPC-H benchmark
 
 tpch_benchmark_dir=$(dirname `realpath $0`)/tpchbenchmark
 
@@ -131,8 +122,8 @@ type mvn 1>/dev/null || abort_script "maven unavailable"
 
 mvn package || abort_script "Error while compiling tpchbenchmark maven project"
 
-mvn exec:java -Dexec.mainClass="nl.cwi.monetdb.TPCH.TPCHMain" -Dexec.args="populate $database $output_path $tpch_data_dir" || abort_script "Error while importing to $output_path directory"
+mvn exec:java -Dexec.mainClass="nl.cwi.monetdb.TPCH.TPCHMain" -Dexec.args="evaluate $database $input_path $tpch_query_dir" || abort_script "Error while running TPC-H benchmark"
 
 popd >&/dev/null
 
-echo "TPC-H scale factor $scale_factor was successfully imported to $database database on $output_path directory"
+echo "TPC-H benchmark on scale factor $scale_factor successfully ran on $database database on $input_path directory"

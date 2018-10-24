@@ -8,11 +8,6 @@ import java.sql.Statement;
 public class MonetDBLitePopulate extends TPCHPopulate {
 
 	@Override
-	public String setDatabasePathInternal(String databasePath) {
-		return databasePath;
-	}
-
-	@Override
 	void populateInside(String databasePath, String dataPath) throws Exception {
 		Class.forName("nl.cwi.monetdb.jdbc.MonetDriver");
 		Connection con = DriverManager.getConnection("jdbc:monetdb:embedded:" + databasePath,"monetdb","monetdb");

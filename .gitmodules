@@ -1,3 +1,0 @@
-[submodule "tpch-dbgen"]
-	path = tpch-dbgen
-	url = git@github.com:eyalroz/tpch-dbgen.git

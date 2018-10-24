@@ -8,13 +8,9 @@ import java.sql.Statement;
 public class H2Populate extends TPCHPopulate {
 
 	@Override
-	public String setDatabasePathInternal(String databasePath) {
-		return Paths.get(databasePath, "database").toString();
-	}
-
-	@Override
 	void populateInside(String databasePath, String dataPath) throws Exception {
 		Class.forName("org.h2.Driver");
+		databasePath = Paths.get(databasePath, "database").toString();
 		Connection con = DriverManager.getConnection("jdbc:h2:" + databasePath, "sa","");
 		Exception upsme = null;
 

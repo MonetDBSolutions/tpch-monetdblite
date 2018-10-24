@@ -8,8 +8,6 @@ public abstract class TPCHPopulate {
 
 	abstract void populateInside(String databasePath, String dataPath) throws Exception;
 
-	abstract String setDatabasePathInternal(String databasePath) throws Exception;
-
 	public void populate(String databasePath, String dataPath) throws Exception {
 		File databaseDirectory = new File(databasePath);
 		if(!databaseDirectory.isAbsolute()) {
@@ -21,7 +19,6 @@ public abstract class TPCHPopulate {
 		if(!databaseDirectory.isDirectory()) {
 			TPCHMain.displayError(databasePath + " is not a directory");
 		}
-		databasePath = this.setDatabasePathInternal(databasePath);
 
 		File dataDirectory = new File(dataPath);
 		if(!dataDirectory.isAbsolute()) {
