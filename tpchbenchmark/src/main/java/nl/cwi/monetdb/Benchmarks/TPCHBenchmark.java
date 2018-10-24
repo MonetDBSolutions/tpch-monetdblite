@@ -10,6 +10,9 @@ public class TPCHBenchmark {
 	@Param({"MonetDBLite-Java"})
 	public String databaseSystem;
 
+	@Param({"1"})
+	public String scaleFactor;
+
 	@Param({"/tmp/database"})
 	public String databasePath;
 
@@ -20,6 +23,7 @@ public class TPCHBenchmark {
 
 	@Setup(Level.Trial)
 	public void setupTPCH() throws Exception {
+		float sf;
 		switch (this.databaseSystem) {
 			case "MonetDBLite-Java":
 				this.benchSetting = new MonetDBLiteJavaSetting();
@@ -32,7 +36,15 @@ public class TPCHBenchmark {
 				System.exit(1);
 				break;
 		}
-		this.benchSetting.setupQueries(this.queryPath);
+		try {
+			sf = Float.parseFloat(this.scaleFactor);
+		} catch (Exception ex) {
+			throw new NumberFormatException("Scale factor is not a valid number");
+		}
+		if(sf < 0) {
+			throw new NumberFormatException("Scale factor cannot be negative");
+		}
+		this.benchSetting.setupQueries(this.queryPath, sf);
 	}
 
 	@Setup(Level.Iteration) //create a new connection for every iteration

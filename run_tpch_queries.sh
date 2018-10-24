@@ -93,40 +93,9 @@ if [[ ! -f "$tpch_gen_dir/qgen" ]]; then
 	popd > /dev/null
 fi
 
-# Generate TPC-H query files
-
-tpch_query_dir=$(dirname `realpath $0`)/tpchdata/"$database"/queries/sf"$scale_factor"
-tpch_queries_source_dir=$(dirname `realpath $0`)/tpch-tools/benchmark_queries
-
-if [[ ! -d "$tpch_query_dir" ]] ; then
-	mkdir -p "$tpch_query_dir" || abort_script "Can't create staging directory $tpch_query_dir for generating TPC-H query data"
-
-	pushd "$tpch_gen_dir" >/dev/null
-
-	case "$database" in
-		'MonetDBLite-Java')
-			for ((i=1; i <= 22 ; i+=1))
-			do
-				if [[ "$i" == "15" ]]; then
-					cp "$tpch_queries_source_dir/15a.sql" "$tpch_query_dir/15.sql" || abort_script "Failed generating TPC-H query file"
-				else
-					padded=$(printf '%02d' "$i")
-					cp "$tpch_queries_source_dir/$padded.sql" "$tpch_query_dir/$padded.sql" || abort_script "Failed generating TPC-H query file"
-				fi
-			done
-			;;
-		'H2')
-			;;
-		*)
-			abort_script "Unknown database $database"
-			;;
-	esac
-
-	popd > /dev/null
-fi
-
 # Run TPC-H benchmark
 
+tpch_query_dir=$(dirname `realpath $0`)/tpch-queries/"$database"
 tpch_benchmark_dir=$(dirname `realpath $0`)/tpchbenchmark
 
 pushd "$tpch_benchmark_dir" >/dev/null
@@ -135,8 +104,8 @@ type mvn 1>/dev/null || abort_script "maven unavailable"
 
 mvn package || abort_script "Error while compiling tpchbenchmark maven project"
 
-mvn exec:java -Dexec.mainClass="nl.cwi.monetdb.TPCH.TPCHMain" -Dexec.args="evaluate $database $input_path $tpch_query_dir" || abort_script "Error while running TPC-H benchmark"
+mvn exec:java -Dexec.mainClass="nl.cwi.monetdb.TPCH.TPCHMain" -Dexec.args="evaluate $database $scale_factor $input_path $tpch_query_dir" || abort_script "Error while running TPC-H benchmark"
 
 popd > /dev/null
 
-echo "TPC-H benchmark on scale factor $scale_factor successfully ran on $database database on $input_path directory"
+echo "TPC-H benchmark scale factor $scale_factor successfully ran on $database database on $input_path directory"

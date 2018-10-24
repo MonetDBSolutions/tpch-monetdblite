@@ -2,17 +2,32 @@ package nl.cwi.monetdb.Benchmarks;
 
 import org.openjdk.jmh.infra.Blackhole;
 
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
 public abstract class TPCHSetting {
 
-	String[] tpchQueries = new String[22];
+	private String[] tpchQueries = new String[22];
 	Connection connection;
 	private Statement statement;
 
-	abstract void setupQueries(String queryPath) throws Exception;
+	public void setupQueries(String queryPath, float scaleFactor) throws Exception {
+		for(int i=1; i <= 22; i++) {
+			String nextQuery = Paths.get(queryPath, String.format("%02d.sql", i)).toString();
+			byte[] encoded = Files.readAllBytes(Paths.get(nextQuery));
+			String next = new String(encoded, Charset.forName("UTF-8"));
+
+			if(i == 11) {
+				String replace = String.format("%f", 0.0001f / scaleFactor);
+				next = next.replaceAll("@REPLACE_ME@", replace);
+			}
+			this.tpchQueries[i - 1] = next;
+		}
+	}
 
 	abstract void setupConnectionInternal(String databasePath) throws Exception;
 

@@ -9,4 +9,4 @@ tpchbenchmark/tpchbenchmark.iml
 tpchbenchmark/target
 
 # TPC-H import data
-tpchdata
+tpch-data

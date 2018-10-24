@@ -25,16 +25,16 @@ public class TPCHMain {
 	private static void displayHelp() {
 		System.out.println("Usage of JVM TPC-H benchmark tool");
 		System.out.println("Parameters: { populate | evaluate | help } other_parameters");
-		System.out.println("For populate: { MonetDBLite-Java | H2 } database_path import_path");
-		System.out.println("For evaluate: { MonetDBLite-Java | H2 } database_path query_path");
+		System.out.println("For populate: { MonetDBLite-Java | H2 } scale_factor database_path import_path");
+		System.out.println("For evaluate: { MonetDBLite-Java | H2 } scale_factor database_path query_path");
 		System.exit(0);
 	}
 
 	private static void populate(String[] args) throws Exception {
 		TPCHPopulate popMe = null;
 
-		if(args.length < 4) {
-			displayError("Usage: populate { MonetDBLite-Java | H2 } database_path import_path");
+		if(args.length < 5) {
+			displayError("Usage: populate { MonetDBLite-Java | H2 } scale_factor database_path import_path");
 			return;
 		}
 		switch (args[1]) {
@@ -49,7 +49,7 @@ public class TPCHMain {
 				break;
 		}
 		if(popMe != null){
-			popMe.populate(args[2], args[3]);
+			popMe.populate(args[3], args[4]);
 		}
 	}
 
@@ -78,8 +78,8 @@ public class TPCHMain {
 	}
 
 	private static void evaluate(String[] args) throws RunnerException {
-		if(args.length < 4) {
-			displayError("Usage: evaluate { MonetDBLite-Java | H2 } database_path query_path");
+		if(args.length < 5) {
+			displayError("Usage: evaluate { MonetDBLite-Java | H2 } scale_factor database_path query_path");
 			return;
 		}
 		switch (args[1]) {
@@ -92,19 +92,20 @@ public class TPCHMain {
 				break;
 		}
 
-		validatePaths(args[2], args[3]);
+		validatePaths(args[3], args[4]);
 
 		Options opt = new OptionsBuilder()
 			.include(TPCHBenchmark.class.getSimpleName())
 			.timeUnit(TimeUnit.MILLISECONDS)
-			.mode(Mode.SingleShotTime)
+			.mode(Mode.AverageTime)
 			.threads(1)
 			.forks(1)
 			.warmupIterations(1)
-			.measurementIterations(1)
+			.measurementIterations(3)
 			.param("databaseSystem", args[1])
-			.param("databasePath", args[2])
-			.param("queryPath", args[3])
+			.param("scaleFactor", args[2])
+			.param("databasePath", args[3])
+			.param("queryPath", args[4])
 			.build();
 
 		//Hack to find org.openjdk.jmh.runner.ForkedMain class, because TPCHMain is called from maven exec plugin

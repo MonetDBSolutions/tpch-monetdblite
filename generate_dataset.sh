@@ -110,7 +110,7 @@ fi
 
 # Generate TPC-H database CSV files
 
-tpch_data_dir=$(dirname `realpath $0`)/tpchdata/"$database"/data/sf"$scale_factor"
+tpch_data_dir=$(dirname `realpath $0`)/tpch-data/"$database"/sf"$scale_factor"
 
 if [[ ! -d "$tpch_data_dir" ]] ; then
 	mkdir -p "$tpch_data_dir" || abort_script "Can't create staging directory $tpch_data_dir for generating TPC-H data"
@@ -131,7 +131,7 @@ type mvn 1>/dev/null || abort_script "maven unavailable"
 
 mvn package || abort_script "Error while compiling tpchbenchmark maven project"
 
-mvn exec:java -Dexec.mainClass="nl.cwi.monetdb.TPCH.TPCHMain" -Dexec.args="populate $database $output_path $tpch_data_dir" || abort_script "Error while importing to $output_path directory"
+mvn exec:java -Dexec.mainClass="nl.cwi.monetdb.TPCH.TPCHMain" -Dexec.args="populate $database $scale_factor $output_path $tpch_data_dir" || abort_script "Error while importing to $output_path directory"
 
 popd > /dev/null
 
