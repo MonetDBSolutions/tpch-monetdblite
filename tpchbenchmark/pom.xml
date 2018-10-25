@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>nl.cwi.monetdb</groupId>
+    <groupId>monetdb</groupId>
     <artifactId>tpchbenchmark</artifactId>
     <version>1.0</version> <!-- This version should never change -->
 
@@ -61,6 +61,9 @@
                 <configuration>
                     <source>${javac.target}</source>
                     <target>${javac.target}</target>
+                    <compilerVersion>${javac.target}</compilerVersion>
+                    <fork>true</fork>
+                    <executable>${JAVACOMPILEHOME}/bin/javac</executable>
                 </configuration>
             </plugin>
             <plugin>
