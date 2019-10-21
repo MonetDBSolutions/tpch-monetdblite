@@ -9,7 +9,6 @@
     <version>1.0</version> <!-- This version should never change -->
 
     <properties>
-        <javac.target>1.8</javac.target>
         <jmh.version>1.21</jmh.version>
         <jmh.generator>default</jmh.generator>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -59,10 +58,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <source>${javac.target}</source>
-                    <target>${javac.target}</target>
                     <fork>true</fork>
-                    <executable>${JAVACOMPILEHOME}/bin/javac</executable>
                 </configuration>
             </plugin>
             <plugin>
