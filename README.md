@@ -51,7 +51,11 @@ The `$JAVA_HOME` environment variable, must be set with the path of the JDK with
 On the cloned tpch-monetdblite directory the following scripts are available:
 
 - `generate_dataset.sh` for importing:
+```sh
 ./generate_dataset.sh --sf 1 --database { MonetDBLite-Java | H2 } --path <Absolute path of MonetDBLite-Java database farm>
+```
 
 - `run_tpch_queries.sh` for TPC-H benchmark run:
+```sh
 ./run_tpch_queries.sh --sf 1 --database { MonetDBLite-Java | H2 } --path  <Absolute path of MonetDBLite-Java database farm>
+```
