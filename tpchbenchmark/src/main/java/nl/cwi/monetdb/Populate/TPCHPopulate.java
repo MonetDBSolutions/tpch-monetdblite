@@ -10,27 +10,7 @@ public abstract class TPCHPopulate {
 
 	public void populate(String databasePath, String dataPath) throws Exception {
 		File databaseDirectory = new File(databasePath);
-		if(!databaseDirectory.isAbsolute()) {
-			TPCHMain.displayError(databasePath + " is not a absolute path");
-		}
-		if(!databaseDirectory.exists()) {
-			TPCHMain.displayError("Directory " + databasePath + " does not exist");
-		}
-		if(!databaseDirectory.isDirectory()) {
-			TPCHMain.displayError(databasePath + " is not a directory");
-		}
-
 		File dataDirectory = new File(dataPath);
-		if(!dataDirectory.isAbsolute()) {
-			TPCHMain.displayError(dataPath + " is not a absolute path");
-		}
-		if(!dataDirectory.exists()) {
-			TPCHMain.displayError("Directory " + dataPath + " does not exist");
-		}
-		if(!dataDirectory.isDirectory()) {
-			TPCHMain.displayError(dataPath + " is not a directory");
-		}
-
 		this.populateInside(databasePath, dataPath);
 	}
 }
