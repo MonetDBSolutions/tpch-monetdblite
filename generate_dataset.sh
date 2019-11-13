@@ -80,8 +80,6 @@ fi
 
 [[ -n "$database" ]] || abort_script 'Database not set'
 
-is_in_list "$database" 'MonetDBLite-Java' 'H2' || abort_script "Database $database not supported"
-
 [[ -n "$output_path" ]] || abort_script 'Output path not set'
 
 if [[ ! -d "$output_path" ]] ; then

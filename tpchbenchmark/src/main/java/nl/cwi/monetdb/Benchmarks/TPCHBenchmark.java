@@ -1,5 +1,6 @@
 package nl.cwi.monetdb.Benchmarks;
 
+import nl.cwi.monetdb.TPCH.DatabaseSystemResolver;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
@@ -24,18 +25,12 @@ public class TPCHBenchmark {
 	@Setup(Level.Trial)
 	public void setupTPCH() throws Exception {
 		float sf;
-		switch (this.databaseSystem) {
-			case "MonetDBLite-Java":
-				this.benchSetting = new MonetDBLiteJavaSetting();
-				break;
-			case "H2":
-				this.benchSetting = new H2Setting();
-				break;
-			default:
-				System.err.println("Database " + this.databaseSystem + " is not supported");
-				System.exit(1);
-				break;
+		Class<? extends TPCHSetting> settingClass = DatabaseSystemResolver.resolveSetting(this.databaseSystem);
+		if (settingClass == null) {
+			System.err.println("Database " + this.databaseSystem + " is not supported");
+			System.exit(1);
 		}
+		this.benchSetting = settingClass.getDeclaredConstructor().newInstance();
 		try {
 			sf = Float.parseFloat(this.scaleFactor);
 		} catch (Exception ex) {

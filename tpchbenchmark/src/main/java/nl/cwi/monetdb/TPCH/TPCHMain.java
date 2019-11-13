@@ -37,20 +37,14 @@ public class TPCHMain {
 			displayError("Usage: populate { MonetDBLite-Java | H2 } scale_factor database_path import_path");
 			return;
 		}
-		switch (args[1]) {
-			case "MonetDBLite-Java":
-				popMe = new MonetDBLitePopulate();
-				break;
-			case "H2":
-				popMe = new H2Populate();
-				break;
-			default:
-				displayError("Database " + args[1] + " is not supported");
-				break;
+		Class<? extends TPCHPopulate> populateClass = DatabaseSystemResolver.resolvePopulate(args[1]);
+		if (populateClass == null) {
+			displayError("Could not resolve database system '" + args[1] + "'");
+			return;
 		}
-		if(popMe != null){
-			popMe.populate(args[3], args[4]);
-		}
+		popMe = populateClass.getDeclaredConstructor().newInstance();
+		validatePaths(args[3], args[4]);
+		popMe.populate(args[3], args[4]);
 	}
 
 	private static void validatePaths(String newDatabasePath, String newQueryPath) {
@@ -82,16 +76,10 @@ public class TPCHMain {
 			displayError("Usage: evaluate { MonetDBLite-Java | H2 } scale_factor database_path query_path");
 			return;
 		}
-		switch (args[1]) {
-			case "MonetDBLite-Java":
-				break;
-			case "H2":
-				break;
-			default:
-				displayError("Database " + args[1] + " is not supported");
-				break;
+		if (null == DatabaseSystemResolver.resolveSetting(args[1]))  {
+			displayError("Could not resolve database system '" + args[1] + "'");
+			return;
 		}
-
 		validatePaths(args[3], args[4]);
 
 		Options opt = new OptionsBuilder()
