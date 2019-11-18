@@ -1,9 +1,18 @@
+.*.swp
+
 # IDE files
-.idea
+.idea/
+.vscode/
+.classpath
+.factorypath
+.project
+.settings/
 CMakeLists.txt
 cmake-build-debug
 tpchbenchmark/.idea
 tpchbenchmark/tpchbenchmark.iml
+
+tpchbenchmark/target/
 
 # Maven generated files
 tpchbenchmark/target
