@@ -43,20 +43,15 @@ public class DatabaseSystemResolver {
 
         String prefix = namePrefix.toLowerCase();
         for (Resolution res : resolutions) {
-            System.err.println("Looking for " + namePrefix + " in " + res.fullName);
             if (!res.fullName.startsWith(prefix)) {
-                System.out.println("  no match");
                 continue;
             }
             if (result != null) {
-                System.err.println("  duplicate match");
                 return null;
             }
-            System.err.println("  found a match");
             result = res;
         }
 
-        System.err.println("returning " + result.fullName);
         return result;
     }
 

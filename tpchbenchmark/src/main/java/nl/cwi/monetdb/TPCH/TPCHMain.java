@@ -47,30 +47,6 @@ public class TPCHMain {
 		popMe.populate(args[3], args[4]);
 	}
 
-	private static void validatePaths(String newDatabasePath, String newQueryPath) {
-		File databaseDirectory = new File(newDatabasePath);
-		if(!databaseDirectory.isAbsolute()) {
-			TPCHMain.displayError(newDatabasePath + " is not a absolute path");
-		}
-		if(!databaseDirectory.exists()) {
-			TPCHMain.displayError("Directory " + newDatabasePath + " does not exist");
-		}
-		if(!databaseDirectory.isDirectory()) {
-			TPCHMain.displayError(newDatabasePath + " is not a directory");
-		}
-
-		File queryDirectory = new File(newQueryPath);
-		if(!queryDirectory.isAbsolute()) {
-			TPCHMain.displayError(newQueryPath + " is not a absolute path");
-		}
-		if(!queryDirectory.exists()) {
-			TPCHMain.displayError("Directory " + newQueryPath + " does not exist");
-		}
-		if(!queryDirectory.isDirectory()) {
-			TPCHMain.displayError(newQueryPath + " is not a directory");
-		}
-	}
-
 	private static void evaluate(String[] args) throws RunnerException {
 		if(args.length < 5) {
 			displayError("Usage: evaluate { MonetDBLite-Java | H2 } scale_factor database_path query_path");
@@ -107,6 +83,29 @@ public class TPCHMain {
 		new Runner(opt).run();
 	}
 
+	private static void validatePaths(String newDatabasePath, String newQueryPath) {
+		File databaseDirectory = new File(newDatabasePath);
+		if(!databaseDirectory.isAbsolute()) {
+			TPCHMain.displayError(newDatabasePath + " is not a absolute path");
+		}
+		if(!databaseDirectory.exists()) {
+			TPCHMain.displayError("Directory " + newDatabasePath + " does not exist");
+		}
+		if(!databaseDirectory.isDirectory()) {
+			TPCHMain.displayError(newDatabasePath + " is not a directory");
+		}
+
+		File queryDirectory = new File(newQueryPath);
+		if(!queryDirectory.isAbsolute()) {
+			TPCHMain.displayError(newQueryPath + " is not a absolute path");
+		}
+		if(!queryDirectory.exists()) {
+			TPCHMain.displayError("Directory " + newQueryPath + " does not exist");
+		}
+		if(!queryDirectory.isDirectory()) {
+			TPCHMain.displayError(newQueryPath + " is not a directory");
+		}
+	}
 	public static void main(String[] args) throws Exception {
 		if(args.length < 1) {
 			displayError("The activity parameter must be provided: { populate | evaluate | help }");
