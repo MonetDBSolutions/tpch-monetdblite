@@ -1,4 +1,4 @@
-package nl.cwi.monetdb.Benchmarks;
+package nl.cwi.monetdb.benchmarks;
 
 import java.nio.file.Paths;
 import java.sql.DriverManager;

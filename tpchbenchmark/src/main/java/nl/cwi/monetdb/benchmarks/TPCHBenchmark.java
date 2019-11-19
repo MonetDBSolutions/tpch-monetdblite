@@ -1,4 +1,4 @@
-package nl.cwi.monetdb.Benchmarks;
+package nl.cwi.monetdb.benchmarks;
 
 import nl.cwi.monetdb.TPCH.DatabaseSystemResolver;
 import org.openjdk.jmh.annotations.*;
@@ -25,12 +25,11 @@ public class TPCHBenchmark {
 	@Setup(Level.Trial)
 	public void setupTPCH() throws Exception {
 		float sf;
-		Class<? extends TPCHSetting> settingClass = DatabaseSystemResolver.resolveSetting(this.databaseSystem);
-		if (settingClass == null) {
+		this.benchSetting = DatabaseSystemResolver.resolve(this.databaseSystem).getSetting();
+		if (this.benchSetting == null) {
 			System.err.println("Database " + this.databaseSystem + " is not supported");
 			System.exit(1);
 		}
-		this.benchSetting = settingClass.getDeclaredConstructor().newInstance();
 		try {
 			sf = Float.parseFloat(this.scaleFactor);
 		} catch (Exception ex) {

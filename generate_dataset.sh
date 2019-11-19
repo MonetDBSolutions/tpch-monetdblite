@@ -129,7 +129,9 @@ type mvn 1>/dev/null || abort_script "maven unavailable"
 
 mvn package || abort_script "Error while compiling tpchbenchmark maven project"
 
-mvn exec:java -Dexec.mainClass="nl.cwi.monetdb.TPCH.TPCHMain" -Dexec.args="populate $database $scale_factor $output_path $tpch_data_dir" || abort_script "Error while importing to $output_path directory"
+mvn_args="populate $database $scale_factor $output_path $tpch_data_dir"
+echo "Mvn args: $mvn_args"
+mvn exec:java -Dexec.mainClass="nl.cwi.monetdb.TPCH.TPCHMain" -Dexec.args="$mvn_args" || abort_script "Error while importing to $output_path directory"
 
 popd > /dev/null
 

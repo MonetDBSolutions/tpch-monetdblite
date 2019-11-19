@@ -1,58 +1,34 @@
 package nl.cwi.monetdb.TPCH;
 
-import nl.cwi.monetdb.Benchmarks.H2Setting;
-import nl.cwi.monetdb.Benchmarks.MonetDBLiteJavaSetting;
-import nl.cwi.monetdb.Benchmarks.TPCHBenchmark;
-import nl.cwi.monetdb.Benchmarks.TPCHSetting;
-import nl.cwi.monetdb.Populate.H2Populate;
-import nl.cwi.monetdb.Populate.MonetDBLitePopulate;
-import nl.cwi.monetdb.Populate.TPCHPopulate;
+import nl.cwi.monetdb.benchmarks.H2Setting;
+import nl.cwi.monetdb.benchmarks.MonetDBLiteJavaSetting;
+import nl.cwi.monetdb.populate.H2Populater;
+import nl.cwi.monetdb.populate.MonetDBLitePopulater;
 
 public class DatabaseSystemResolver {
 
-    private static class Resolution {
-        String fullName;
-        Class<? extends TPCHPopulate> populateClass;
-        Class<? extends TPCHSetting> settingClass;
-
-        public Resolution(String fullName, Class<? extends TPCHPopulate> populateClass, Class<? extends TPCHSetting> settingClass) {
-            this.fullName = fullName.toLowerCase();
-            this.populateClass = populateClass;
-            this.settingClass = settingClass;
-        }
-
-    }
-
-    private static Resolution[] resolutions = new Resolution[]{
-            new Resolution("H2", H2Populate.class, H2Setting.class),
-            new Resolution("MonetDBLite-Java", MonetDBLitePopulate.class, MonetDBLiteJavaSetting.class),
+    private static DatabaseSystem[] databaseSystems = new DatabaseSystem[]{
+            new DatabaseSystem("jdbc:h2:", "H2", new H2Populater(), new H2Setting()),
+            new DatabaseSystem("jdbc:monetdb:", "MonetDB", new MonetDBLitePopulater(), new MonetDBLiteJavaSetting()),
     };
 
-    public static Class<? extends TPCHPopulate> resolvePopulate(String namePrefix) {
-        Resolution res = resolve(namePrefix);
-        return res != null ? res.populateClass : null;
-    }
+    public static DatabaseSystem resolve(String jdbcUrl) {
+        DatabaseSystem result = null;
 
-    public static Class<? extends TPCHSetting> resolveSetting(String namePrefix) {
-        Resolution res = resolve(namePrefix);
-        return res != null ? res.settingClass : null;
-    }
-
-    private static Resolution resolve(String namePrefix) {
-        Resolution result = null;
-
-        String prefix = namePrefix.toLowerCase();
-        for (Resolution res : resolutions) {
-            if (!res.fullName.startsWith(prefix)) {
+        for (DatabaseSystem sys : databaseSystems) {
+            if (!jdbcUrl.startsWith(sys.getJdbcUrlPrefix())) {
                 continue;
             }
             if (result != null) {
+                // duplicate
                 return null;
             }
-            result = res;
+            result = sys;
         }
 
         return result;
     }
+
+
 
 }

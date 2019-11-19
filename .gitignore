@@ -12,10 +12,9 @@ cmake-build-debug
 tpchbenchmark/.idea
 tpchbenchmark/tpchbenchmark.iml
 
-tpchbenchmark/target/
-
 # Maven generated files
 tpchbenchmark/target
+tpchbenchmark/dependency-reduced-pom.xml
 
 # TPC-H import data
 tpch-data
