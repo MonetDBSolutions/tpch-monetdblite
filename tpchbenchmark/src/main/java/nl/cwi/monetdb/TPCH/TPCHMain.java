@@ -11,8 +11,6 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import java.io.File;
 import java.io.PrintStream;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.concurrent.TimeUnit;
 
 public class TPCHMain {

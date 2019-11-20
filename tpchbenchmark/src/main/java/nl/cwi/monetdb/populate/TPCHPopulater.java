@@ -4,7 +4,6 @@ import nl.cwi.monetdb.TPCH.ConnectInfo;
 
 import java.io.*;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.Statement;
 import java.util.stream.Collectors;
 

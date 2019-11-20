@@ -1,8 +1,6 @@
 package nl.cwi.monetdb.benchmarks;
 
 import nl.cwi.monetdb.TPCH.ConnectInfo;
-import nl.cwi.monetdb.TPCH.DatabaseSystem;
-import nl.cwi.monetdb.TPCH.DatabaseSystemResolver;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
