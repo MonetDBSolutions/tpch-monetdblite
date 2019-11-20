@@ -5,7 +5,7 @@ import nl.cwi.monetdb.populate.TPCHPopulater;
 
 class H2DatabaseSystem extends DatabaseSystem {
     public H2DatabaseSystem() {
-        super("jdbc:h2:", "H2", "org.h2.Driver", new TPCHPopulater(), new TPCHSetting());
+        super("jdbc:h2:", "H2", "org.h2.Driver");
     }
 
     @Override

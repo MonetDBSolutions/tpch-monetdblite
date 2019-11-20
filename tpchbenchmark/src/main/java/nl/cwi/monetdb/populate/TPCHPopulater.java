@@ -2,8 +2,12 @@ package nl.cwi.monetdb.populate;
 
 import nl.cwi.monetdb.TPCH.ConnectInfo;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.stream.Collectors;
 
@@ -14,31 +18,34 @@ public class TPCHPopulater {
 				connectInfo.getJdbcUrl(), connectInfo.getUser(), connectInfo.getPassword()));
 		try (
 				Connection con = connectInfo.connect();
-				Statement st = con.createStatement()
 		) {
 			con.setAutoCommit(false);
-			String[] statements = this.initializationStatements(connectInfo.getDatabaseSystem().getPrettyName(), importPath);
-			for (String s : statements) {
-				st.executeUpdate(s);
-			}
+			innerPopulate(connectInfo, importPath, con);
 			con.commit();
 		}
 		System.out.println("Import completed");
-
 	}
 
-	String[] initializationStatements(String databaseName, String dataPath) {
+	protected void innerPopulate(ConnectInfo connectInfo, String importPath, Connection conn) throws SQLException, IOException {
+		String[] statements = this.readSqlFromResource(connectInfo.getDatabaseSystem().getPrettyName(), importPath);
+		try (Statement st = conn.createStatement()) {
+			for (String s : statements) {
+				String fixed = s.replaceAll("@DATAPATH@", importPath) + ";";
+				st.executeUpdate(fixed);
+			}
+		}
+	}
+
+	String[] readSqlFromResource(String databaseName, String dataPath) {
 		// Surely there's a better way?
 		String resourceName = String.format("/schemas/%s/setup.sql", databaseName);
 		InputStream schema = this.getClass().getResourceAsStream(resourceName);
+		if (schema == null) {
+			throw new IllegalArgumentException("Could not find " + resourceName + " on the classpath");
+		}
 		String content = new BufferedReader(new InputStreamReader(schema)).lines().collect(Collectors.joining("\n"));
 
-		String[] statements = content.split(";");
-		for (int i = 0; i < statements.length; i++) {
-			statements[i] = statements[i].trim().replaceAll("@DATAPATH@", dataPath) + ";";
-		}
-
-		return statements;
+		return content.split(";");
 	}
 
 }

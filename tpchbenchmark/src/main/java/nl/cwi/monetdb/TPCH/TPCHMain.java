@@ -90,7 +90,7 @@ public class TPCHMain {
             return;
         }
         ensureDirectoryExists(importPath);
-        connectInfo.getDatabaseSystem().populate(connectInfo, importPath);
+        connectInfo.getDatabaseSystem().getPopulater().populate(connectInfo, importPath);
     }
 
     private static void evaluate(String connectString, String scale_factor, String output) throws RunnerException {

@@ -5,6 +5,7 @@ public class DatabaseSystemResolver {
     private static DatabaseSystem[] databaseSystems = new DatabaseSystem[]{
             new H2DatabaseSystem(),
             new MonetDatabaseSystem(),
+            new SqliteDatabaseSystem(),
     };
 
     public static DatabaseSystem resolve(String jdbcUrl) {

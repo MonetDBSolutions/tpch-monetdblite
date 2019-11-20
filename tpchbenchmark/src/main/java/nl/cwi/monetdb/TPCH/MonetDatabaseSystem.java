@@ -5,7 +5,7 @@ import nl.cwi.monetdb.populate.TPCHPopulater;
 
 class MonetDatabaseSystem extends DatabaseSystem {
     public MonetDatabaseSystem() {
-        super("jdbc:monetdb:", "MonetDB", "nl.cwi.monetdb.jdbc.MonetDriver", new TPCHPopulater(), new TPCHSetting());
+        super("jdbc:monetdb:", "MonetDB", "nl.cwi.monetdb.jdbc.MonetDriver");
     }
 
     @Override

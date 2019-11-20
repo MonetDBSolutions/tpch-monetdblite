@@ -7,14 +7,10 @@ public abstract class DatabaseSystem {
     private final String JdbcUrlPrefix;
     private final String prettyName;
     private final String driverClass;
-    private final TPCHPopulater populater;
-    private final TPCHSetting setting;
 
-    public DatabaseSystem(String jdbcUrlPrefix, String prettyName, String driverClass, TPCHPopulater populater, TPCHSetting setting) {
+    public DatabaseSystem(String jdbcUrlPrefix, String prettyName, String driverClass) {
         JdbcUrlPrefix = jdbcUrlPrefix;
         this.prettyName = prettyName;
-        this.populater = populater;
-        this.setting = setting;
         this.driverClass = driverClass;
     }
 
@@ -34,11 +30,12 @@ public abstract class DatabaseSystem {
 
     public abstract String fillInPassword(String user, String password);
 
-    public TPCHSetting getSetting() {
-        return setting;
+    public TPCHPopulater getPopulater() {
+        return new TPCHPopulater();
     }
 
-    public void populate(ConnectInfo connectInfo, String importPath) throws Exception {
-        this.populater.populate(connectInfo, importPath);
+    public TPCHSetting getSetting() {
+        return new TPCHSetting();
     }
+
 }
