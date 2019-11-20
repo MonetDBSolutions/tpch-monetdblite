@@ -34,6 +34,7 @@ public class TPCHMain {
                 "    jdbc:h2:~/test,",
                 "    sa@jdbc:h2:~/test, ",
                 "    monetdb/monetdb@jdbc:monetdb://localhost:50000/test",
+                "    jdbc:monetdb:embedded:/tmp/testdb",
                 "and IMPORT_PATH a directory containing the generated orders.tbl, lineitem.tbl, etc.",
         };
         PrintStream s = status == 0 ? System.out : System.err;
@@ -72,7 +73,7 @@ public class TPCHMain {
             displayHelp(1);
             return;
         }
-        validateDir(importPath);
+        ensureDirectoryExists(importPath);
         connectInfo.getDatabaseSystem().populate(connectInfo, importPath);
     }
 
@@ -86,8 +87,8 @@ public class TPCHMain {
             displayError("Could not resolve database system '" + args[1] + "'");
             return;
         }
-        validateDir(args[3]);
-        validateDir(args[4]);
+        ensureDirectoryExists(args[3]);
+        ensureDirectoryExists(args[4]);
 
         Options opt = new OptionsBuilder()
                 .include(TPCHBenchmark.class.getSimpleName())
@@ -114,7 +115,7 @@ public class TPCHMain {
         new Runner(opt).run();
     }
 
-    private static void validateDir(String newDatabasePath) {
+    private static void ensureDirectoryExists(String newDatabasePath) {
         File databaseDirectory = new File(newDatabasePath);
         if (!databaseDirectory.isAbsolute()) {
             TPCHMain.displayError(newDatabasePath + " is not a absolute path");
