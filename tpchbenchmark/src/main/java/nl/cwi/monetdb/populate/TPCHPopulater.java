@@ -3,11 +3,34 @@ package nl.cwi.monetdb.populate;
 import nl.cwi.monetdb.TPCH.ConnectInfo;
 
 import java.io.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
 import java.util.stream.Collectors;
 
-public abstract class TPCHPopulater {
+public class TPCHPopulater {
 
-	public abstract void populate(ConnectInfo connectInfo, String importPath) throws Exception;
+	public void populate(ConnectInfo connectInfo, String importPath) throws Exception {
+		Class.forName(connectInfo.getDriverClass());
+		String user = connectInfo.getUser();
+		String password = connectInfo.getPassword();
+		String jdbcUrl = connectInfo.getJdbcUrl();
+
+		System.out.println(String.format("Starting to import into %s, user %s password %s", jdbcUrl, user, password));
+		try (
+				Connection con = DriverManager.getConnection(jdbcUrl, user, password);
+				Statement st = con.createStatement()
+		) {
+			con.setAutoCommit(false);
+			String[] statements = this.initializationStatements(connectInfo.getDatabaseSystem().getPrettyName(), importPath);
+			for (String s : statements) {
+				st.executeUpdate(s);
+			}
+			con.commit();
+		}
+		System.out.println("Import completed");
+
+	}
 
 	String[] initializationStatements(String databaseName, String dataPath) {
 		// Surely there's a better way?

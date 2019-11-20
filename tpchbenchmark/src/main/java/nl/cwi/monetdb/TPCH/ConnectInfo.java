@@ -60,4 +60,8 @@ public class ConnectInfo {
     public DatabaseSystem getDatabaseSystem() {
         return databaseSystem;
     }
+
+    public String getDriverClass() {
+        return this.getDatabaseSystem().getDriverClass();
+    }
 }

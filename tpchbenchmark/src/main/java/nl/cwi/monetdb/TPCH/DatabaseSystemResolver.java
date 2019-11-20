@@ -2,13 +2,12 @@ package nl.cwi.monetdb.TPCH;
 
 import nl.cwi.monetdb.benchmarks.H2Setting;
 import nl.cwi.monetdb.benchmarks.MonetDBLiteJavaSetting;
-import nl.cwi.monetdb.populate.H2Populater;
-import nl.cwi.monetdb.populate.MonetDBLitePopulater;
+import nl.cwi.monetdb.populate.TPCHPopulater;
 
 public class DatabaseSystemResolver {
 
     private static DatabaseSystem[] databaseSystems = new DatabaseSystem[]{
-            new DatabaseSystem("jdbc:h2:", "H2", new H2Populater(), new H2Setting()) {
+            new DatabaseSystem("jdbc:h2:", "H2", "org.h2.Driver", new TPCHPopulater(), new H2Setting()) {
                 @Override
                 public String fillInUser(String user, String password) {
                     if (user == null && password == null) {
@@ -25,7 +24,7 @@ public class DatabaseSystemResolver {
                     return password;
                 }
             },
-            new DatabaseSystem("jdbc:monetdb:", "MonetDB", new MonetDBLitePopulater(), new MonetDBLiteJavaSetting()) {
+            new DatabaseSystem("jdbc:monetdb:", "MonetDB", "nl.cwi.monetdb.jdbc.MonetDriver", new TPCHPopulater(), new MonetDBLiteJavaSetting()) {
                 @Override
                 public String fillInUser(String user, String password) {
                     if (user == null) {
