@@ -2,8 +2,10 @@ package nl.cwi.monetdb.TPCH;
 
 import nl.cwi.monetdb.benchmarks.*;
 import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
+import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
@@ -24,7 +26,7 @@ public class TPCHMain {
         String[] text = {
                 "Use of JVM TPC-H benchmark tool:",
                 "    java -jar tpcbenchmark.jar populate [USER[/PASSWORD]@]JDBC_URL IMPORT_PATH",
-                "    java -jar tpcbenchmark.jar evaluate [USER[/PASSWORD]@]JDBC_URL SCALE_FACTOR ",
+                "    java -jar tpcbenchmark.jar evaluate [USER[/PASSWORD]@]JDBC_URL SCALE_FACTOR OUTPUT_CSV_FILE",
                 "    java -jar tpcbenchmark.jar help",
                 "with JDBC_URL one of",
                 "    jdbc:h2:...",
@@ -52,7 +54,8 @@ public class TPCHMain {
 
         String connectString;
         String importPath;
-        String scale_factor;
+        String scaleFactor;
+        String output = null;
         switch (args[0]) {
             case "help":
                 displayHelp(0);
@@ -67,13 +70,14 @@ public class TPCHMain {
                 populate(connectString, importPath);
                 break;
             case "evaluate":
-                if (args.length < 3) {
+                if (args.length < 4) {
                     displayHelp(1);
                     return;
                 }
                 connectString = args[1];
-                scale_factor = args[2];
-                evaluate(connectString, scale_factor);
+                scaleFactor = args[2];
+                output = args[3];
+                evaluate(connectString, scaleFactor, output);
                 break;
             default:
                 displayHelp(1);
@@ -91,14 +95,14 @@ public class TPCHMain {
         connectInfo.getDatabaseSystem().populate(connectInfo, importPath);
     }
 
-    private static void evaluate(String connectString, String scale_factor) throws RunnerException {
+    private static void evaluate(String connectString, String scale_factor, String output) throws RunnerException {
         ConnectInfo connectInfo = ConnectInfo.parse(connectString);
         if (connectInfo == null) {
             displayHelp(1);
             return;
         }
 
-        Options opt = new OptionsBuilder()
+        ChainedOptionsBuilder optbuilder = new OptionsBuilder()
                 .include(TPCHBenchmark.class.getSimpleName())
                 .timeUnit(TimeUnit.MILLISECONDS)
                 .mode(Mode.AverageTime)
@@ -108,7 +112,11 @@ public class TPCHMain {
                 .measurementIterations(3)
                 .param("connectString", connectString)
                 .param("scaleFactor", scale_factor)
-                .build();
+                .resultFormat(ResultFormatType.CSV)
+                .result(output)
+                ;
+
+        Options opt = optbuilder.build();
 
         //Hack to find org.openjdk.jmh.runner.ForkedMain class, because TPCHMain is called from maven exec plugin
         //https://stackoverflow.com/questions/35574688/how-to-run-a-jmh-benchmark-in-maven-using-execjava-instead-of-execexec
