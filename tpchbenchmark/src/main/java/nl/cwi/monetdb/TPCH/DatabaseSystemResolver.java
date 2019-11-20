@@ -8,8 +8,40 @@ import nl.cwi.monetdb.populate.MonetDBLitePopulater;
 public class DatabaseSystemResolver {
 
     private static DatabaseSystem[] databaseSystems = new DatabaseSystem[]{
-            new DatabaseSystem("jdbc:h2:", "H2", new H2Populater(), new H2Setting()),
-            new DatabaseSystem("jdbc:monetdb:", "MonetDB", new MonetDBLitePopulater(), new MonetDBLiteJavaSetting()),
+            new DatabaseSystem("jdbc:h2:", "H2", new H2Populater(), new H2Setting()) {
+                @Override
+                public String fillInUser(String user, String password) {
+                    if (user == null && password == null) {
+                        return "sa";
+                    }
+                    return user;
+                }
+
+                @Override
+                public String fillInPassword(String user, String password) {
+                    if (password == null) {
+                        return "";
+                    }
+                    return password;
+                }
+            },
+            new DatabaseSystem("jdbc:monetdb:", "MonetDB", new MonetDBLitePopulater(), new MonetDBLiteJavaSetting()) {
+                @Override
+                public String fillInUser(String user, String password) {
+                    if (user == null) {
+                        return "monetdb";
+                    }
+                    return user;
+                }
+
+                @Override
+                public String fillInPassword(String user, String password) {
+                    if (user == null && password == null) {
+                        return "monetdb";
+                    }
+                    return password;
+                }
+            },
     };
 
     public static DatabaseSystem resolve(String jdbcUrl) {

@@ -3,7 +3,7 @@ package nl.cwi.monetdb.TPCH;
 import nl.cwi.monetdb.benchmarks.TPCHSetting;
 import nl.cwi.monetdb.populate.TPCHPopulater;
 
-public class DatabaseSystem {
+public abstract class DatabaseSystem {
     private final String JdbcUrlPrefix;
     private final String prettyName;
     private final TPCHPopulater populater;
@@ -23,6 +23,10 @@ public class DatabaseSystem {
     public String getPrettyName() {
         return prettyName;
     }
+
+    public abstract String fillInUser(String user, String password);
+
+    public abstract String fillInPassword(String user, String password);
 
     public TPCHSetting getSetting() {
         return setting;

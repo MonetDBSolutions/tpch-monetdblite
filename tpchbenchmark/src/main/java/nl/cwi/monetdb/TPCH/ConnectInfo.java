@@ -1,9 +1,10 @@
 package nl.cwi.monetdb.TPCH;
 
 public class ConnectInfo {
-    private String user;
-    private String password;
-    private String jdbcUrl;
+    private final String user;
+    private final String password;
+    private final String jdbcUrl;
+    private final DatabaseSystem databaseSystem;
 
     public static ConnectInfo parse(String connectString) {
         final String user;
@@ -29,36 +30,34 @@ public class ConnectInfo {
             return null;
         }
 
-        return new ConnectInfo(user, password, jdbcUrl);
+        DatabaseSystem sys = DatabaseSystemResolver.resolve(jdbcUrl);
+        if (sys == null) {
+            return null;
+        }
+
+        return new ConnectInfo(sys.fillInUser(user, password), sys.fillInPassword(user, password), jdbcUrl, sys);
     }
 
-    public ConnectInfo(String user, String password, String jdbcUrl) {
+    public ConnectInfo(String user, String password, String jdbcUrl, DatabaseSystem databaseSystem) {
         this.user = user;
         this.password = password;
         this.jdbcUrl = jdbcUrl;
+        this.databaseSystem = databaseSystem;
     }
 
     public String getUser() {
         return user;
     }
 
-    public void setUser(String user) {
-        this.user = user;
-    }
-
     public String getPassword() {
         return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public String getJdbcUrl() {
         return jdbcUrl;
     }
 
-    public void setJdbcUrl(String jdbcUrl) {
-        this.jdbcUrl = jdbcUrl;
+    public DatabaseSystem getDatabaseSystem() {
+        return databaseSystem;
     }
 }

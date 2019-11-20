@@ -72,13 +72,8 @@ public class TPCHMain {
             displayHelp(1);
             return;
         }
-        DatabaseSystem sys = DatabaseSystemResolver.resolve(connectInfo.getJdbcUrl());
-        if (sys == null) {
-            displayError(String.format("Unknown or ambiguousdatabase: %s", connectInfo));
-            return;
-        }
         validateDir(importPath);
-        sys.populate(connectInfo, importPath);
+        connectInfo.getDatabaseSystem().populate(connectInfo, importPath);
     }
 
     private static void evaluate(String[] args) throws RunnerException {
