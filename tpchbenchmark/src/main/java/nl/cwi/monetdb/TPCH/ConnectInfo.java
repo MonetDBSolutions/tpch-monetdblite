@@ -1,5 +1,9 @@
 package nl.cwi.monetdb.TPCH;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
 public class ConnectInfo {
     private final String user;
     private final String password;
@@ -63,5 +67,22 @@ public class ConnectInfo {
 
     public String getDriverClass() {
         return this.getDatabaseSystem().getDriverClass();
+    }
+
+    public Connection connect() throws SQLException {
+        ConnectInfo connectInfo = this;
+        String driverClass = connectInfo.getDriverClass();
+        try {
+            Class.forName(driverClass);
+        } catch (ClassNotFoundException e) {
+            System.err.println("Could not load driver " + driverClass);
+            return null;
+        }
+        String user = connectInfo.getUser();
+        String password = connectInfo.getPassword();
+        String jdbcUrl = connectInfo.getJdbcUrl();
+
+        return DriverManager.getConnection(jdbcUrl, user, password);
+
     }
 }

@@ -11,14 +11,10 @@ import java.util.stream.Collectors;
 public class TPCHPopulater {
 
 	public void populate(ConnectInfo connectInfo, String importPath) throws Exception {
-		Class.forName(connectInfo.getDriverClass());
-		String user = connectInfo.getUser();
-		String password = connectInfo.getPassword();
-		String jdbcUrl = connectInfo.getJdbcUrl();
-
-		System.out.println(String.format("Starting to import into %s, user %s password %s", jdbcUrl, user, password));
+		System.out.println(String.format("Starting to import into %s, user '%s' password '%s'",
+				connectInfo.getJdbcUrl(), connectInfo.getUser(), connectInfo.getPassword()));
 		try (
-				Connection con = DriverManager.getConnection(jdbcUrl, user, password);
+				Connection con = connectInfo.connect();
 				Statement st = con.createStatement()
 		) {
 			con.setAutoCommit(false);

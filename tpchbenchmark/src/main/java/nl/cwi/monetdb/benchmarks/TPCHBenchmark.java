@@ -1,5 +1,7 @@
 package nl.cwi.monetdb.benchmarks;
 
+import nl.cwi.monetdb.TPCH.ConnectInfo;
+import nl.cwi.monetdb.TPCH.DatabaseSystem;
 import nl.cwi.monetdb.TPCH.DatabaseSystemResolver;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
@@ -8,42 +10,31 @@ import org.openjdk.jmh.infra.Blackhole;
 public class TPCHBenchmark {
 
 	//Please override the parameters always
-	@Param({"MonetDBLite-Java"})
-	public String databaseSystem;
+	@Param({"[USER[/PASSWORD]@]jdbc:BLA"})
+	public String connectString;
 
 	@Param({"1"})
-	public String scaleFactor;
+	public double scaleFactor;
 
-	@Param({"/tmp/database"})
-	public String databasePath;
-
-	@Param({"/tmp/query"})
-	public String queryPath;
-
+	private ConnectInfo connectInfo;
 	private TPCHSetting benchSetting;
 
 	@Setup(Level.Trial)
 	public void setupTPCH() throws Exception {
-		float sf;
-		this.benchSetting = DatabaseSystemResolver.resolve(this.databaseSystem).getSetting();
-		if (this.benchSetting == null) {
-			System.err.println("Database " + this.databaseSystem + " is not supported");
-			System.exit(1);
+		connectInfo = ConnectInfo.parse(connectString);
+		if (connectInfo == null) {
+			throw new IllegalArgumentException("Cannot parse connectString parameter " + connectString);
 		}
-		try {
-			sf = Float.parseFloat(this.scaleFactor);
-		} catch (Exception ex) {
-			throw new NumberFormatException("Scale factor is not a valid number");
-		}
-		if(sf < 0) {
+		this.benchSetting = this.connectInfo.getDatabaseSystem().getSetting();
+		if(this.scaleFactor < 0) {
 			throw new NumberFormatException("Scale factor cannot be negative");
 		}
-		this.benchSetting.setupQueries(this.queryPath, sf);
+		this.benchSetting.setupQueries(this.connectInfo.getDatabaseSystem(), this.scaleFactor);
 	}
 
 	@Setup(Level.Iteration) //create a new connection for every iteration
 	public void openConnection() throws Exception {
-		this.benchSetting.setupConnection(this.databasePath);
+		this.benchSetting.setupConnection(this.connectInfo);
 	}
 
 	@TearDown(Level.Iteration)

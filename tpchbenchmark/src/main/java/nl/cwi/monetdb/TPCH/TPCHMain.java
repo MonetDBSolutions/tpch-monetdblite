@@ -49,17 +49,31 @@ public class TPCHMain {
             displayHelp(1);
             return;
         }
+
+        String connectString;
+        String importPath;
+        String scale_factor;
         switch (args[0]) {
             case "help":
                 displayHelp(0);
                 break;
             case "populate":
-                String connectString = args[1];
-                String importPath = args[2];
+                if (args.length < 3) {
+                    displayHelp(1);
+                    return;
+                }
+                connectString = args[1];
+                importPath = args[2];
                 populate(connectString, importPath);
                 break;
             case "evaluate":
-                evaluate(args);
+                if (args.length < 3) {
+                    displayHelp(1);
+                    return;
+                }
+                connectString = args[1];
+                scale_factor = args[2];
+                evaluate(connectString, scale_factor);
                 break;
             default:
                 displayHelp(1);
@@ -77,18 +91,12 @@ public class TPCHMain {
         connectInfo.getDatabaseSystem().populate(connectInfo, importPath);
     }
 
-    private static void evaluate(String[] args) throws RunnerException {
-        if (args.length < 5) {
+    private static void evaluate(String connectString, String scale_factor) throws RunnerException {
+        ConnectInfo connectInfo = ConnectInfo.parse(connectString);
+        if (connectInfo == null) {
             displayHelp(1);
             return;
         }
-        // BROKEN
-        if (null == DatabaseSystemResolver.resolve(args[1]).getSetting()) {
-            displayError("Could not resolve database system '" + args[1] + "'");
-            return;
-        }
-        ensureDirectoryExists(args[3]);
-        ensureDirectoryExists(args[4]);
 
         Options opt = new OptionsBuilder()
                 .include(TPCHBenchmark.class.getSimpleName())
@@ -98,19 +106,17 @@ public class TPCHMain {
                 .forks(1)
                 .warmupIterations(1)
                 .measurementIterations(3)
-                .param("databaseSystem", args[1])
-                .param("scaleFactor", args[2])
-                .param("databasePath", args[3])
-                .param("queryPath", args[4])
+                .param("connectString", connectString)
+                .param("scaleFactor", scale_factor)
                 .build();
 
         //Hack to find org.openjdk.jmh.runner.ForkedMain class, because TPCHMain is called from maven exec plugin
         //https://stackoverflow.com/questions/35574688/how-to-run-a-jmh-benchmark-in-maven-using-execjava-instead-of-execexec
-        URLClassLoader classLoader = (URLClassLoader) nl.cwi.monetdb.benchmarks.TPCHBenchmark.class.getClassLoader();
-        StringBuilder classpath = new StringBuilder();
-        for (URL url : classLoader.getURLs())
-            classpath.append(url.getPath()).append(File.pathSeparator);
-        System.setProperty("java.class.path", classpath.toString());
+//        URLClassLoader classLoader = (URLClassLoader) nl.cwi.monetdb.benchmarks.TPCHBenchmark.class.getClassLoader();
+//        StringBuilder classpath = new StringBuilder();
+//        for (URL url : classLoader.getURLs())
+//            classpath.append(url.getPath()).append(File.pathSeparator);
+//        System.setProperty("java.class.path", classpath.toString());
 
         new Runner(opt).run();
     }

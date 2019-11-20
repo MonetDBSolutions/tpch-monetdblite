@@ -74,10 +74,7 @@ if ! [ -d "$data_dir" ]; then
 fi
 
 # REBUILD TOOL IF NECESSARY
-(
-	cd "$java_code"
-	mvn package
-)
+make -C "$home" jar
 
 # INVOKE THE TOOL
 exec java -jar "$jar_file" populate "$connect_string" "$data_dir"

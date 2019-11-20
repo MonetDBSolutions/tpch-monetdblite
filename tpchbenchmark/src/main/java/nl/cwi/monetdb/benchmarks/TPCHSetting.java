@@ -1,25 +1,29 @@
 package nl.cwi.monetdb.benchmarks;
 
+import nl.cwi.monetdb.TPCH.ConnectInfo;
+import nl.cwi.monetdb.TPCH.DatabaseSystem;
 import org.openjdk.jmh.infra.Blackhole;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.stream.Collectors;
 
-public abstract class TPCHSetting {
+public class TPCHSetting {
 
 	private String[] tpchQueries = new String[22];
 	Connection connection;
 	private Statement statement;
 
-	public void setupQueries(String queryPath, float scaleFactor) throws Exception {
+	public void setupQueries(DatabaseSystem databaseSystem, double scaleFactor) throws Exception {
 		for(int i=1; i <= 22; i++) {
-			String nextQuery = Paths.get(queryPath, String.format("%02d.sql", i)).toString();
-			byte[] encoded = Files.readAllBytes(Paths.get(nextQuery));
-			String next = new String(encoded, Charset.forName("UTF-8"));
+			String next = getQuery(databaseSystem, i);
 
 			if(i == 11) {
 				String replace = String.format("%f", 0.0001f / scaleFactor);
@@ -29,10 +33,19 @@ public abstract class TPCHSetting {
 		}
 	}
 
-	abstract void setupConnectionInternal(String databasePath) throws Exception;
+	String getQuery(DatabaseSystem databaseSystem, int i) {
+		// Ugly.  See also TPCHPopulator.initializationStatements
+		String resourceName = String.format("/queries/%s/%02d.sql", databaseSystem.getPrettyName(), i);
+		InputStream s = this.getClass().getResourceAsStream(resourceName);
+		if (s == null) {
+			throw new IllegalArgumentException("Could not find resource " + resourceName + " on classpath");
+		}
+		String content = new BufferedReader(new InputStreamReader(s)).lines().collect(Collectors.joining("\n"));
+		return content;
+	}
 
-	public void setupConnection(String queryPath) throws Exception {
-		this.setupConnectionInternal(queryPath);
+	public void setupConnection(ConnectInfo connectInfo) throws Exception {
+		this.connection = connectInfo.connect();
 		this.statement = connection.createStatement();
 	}
 
