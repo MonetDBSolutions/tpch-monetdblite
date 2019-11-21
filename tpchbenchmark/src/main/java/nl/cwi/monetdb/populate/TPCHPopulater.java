@@ -2,13 +2,9 @@ package nl.cwi.monetdb.populate;
 
 import nl.cwi.monetdb.TPCH.ConnectInfo;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.io.*;
+import java.nio.file.Paths;
+import java.sql.*;
 import java.util.stream.Collectors;
 
 public class TPCHPopulater {
@@ -30,8 +26,13 @@ public class TPCHPopulater {
 		String[] statements = this.readSqlFromResource(connectInfo.getDatabaseSystem().getPrettyName(), importPath);
 		try (Statement st = conn.createStatement()) {
 			for (String s : statements) {
-				String fixed = s.replaceAll("@DATAPATH@", importPath) + ";";
-				st.executeUpdate(fixed);
+				s = s.trim();
+				if (s.startsWith("@COPY ")) {
+					copyData(conn, s.substring(6), importPath);
+				} else {
+					String fixed = s.replaceAll("@DATAPATH@", importPath) + ";";
+					st.executeUpdate(fixed);
+				}
 			}
 		}
 	}
@@ -48,4 +49,56 @@ public class TPCHPopulater {
 		return content.split(";");
 	}
 
+	protected void copyData(Connection conn, String tableName, String importPath) throws SQLException, IOException {
+		// Figure out the column types
+		final int columnCount;
+		final boolean canBatch = conn.getMetaData().supportsBatchUpdates();
+		try (Statement s = conn.createStatement()) {
+			ResultSet rs = s.executeQuery("SELECT * FROM " + tableName + " WHERE FALSE");
+			ResultSetMetaData md = rs.getMetaData();
+			columnCount = md.getColumnCount();
+		}
+
+		String update = "INSERT INTO " + tableName + " VALUES (";
+		String comma = "";
+		for (int i = 0; i < columnCount; i++) {
+			update += comma + "?";
+			comma = ",";
+		}
+		update += ");";
+
+		String path = Paths.get(importPath, tableName + ".tbl").toString();
+		int count = 0;
+		try (
+				PreparedStatement s = conn.prepareStatement(update);
+				BufferedReader br = new BufferedReader(new FileReader(path));
+		) {
+			String line;
+			int batched = 0;
+			while (null != (line = br.readLine())) {
+				String[] cells = line.split("\\|");
+				for (int i = 0; i < cells.length; i++) {
+					s.setString(i + 1, cells[i]);
+				}
+				if (canBatch) {
+					s.addBatch();
+					batched++;
+					if (batched == 1000) {
+						s.executeBatch();
+						count += batched;
+						batched = 0;
+					}
+				} else {
+					s.executeUpdate();
+					count++;
+				}
+			}
+			if (batched > 0) {
+				s.executeBatch();
+				count += batched;
+			}
+		} finally {
+//			System.out.println(String.format("Wrote %d rows to %s", count, tableName));
+		}
+	}
 }
