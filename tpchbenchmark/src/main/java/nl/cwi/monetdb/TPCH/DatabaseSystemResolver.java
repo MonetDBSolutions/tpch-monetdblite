@@ -8,6 +8,7 @@ public class DatabaseSystemResolver {
             new MonetDatabaseSystem(),
             new SqliteDatabaseSystem(),
             new PostgresqlDatabaseSystem(),
+            new MysqlDatabaseSystem(),
             new H2DatabaseSystem(),
     };
 
