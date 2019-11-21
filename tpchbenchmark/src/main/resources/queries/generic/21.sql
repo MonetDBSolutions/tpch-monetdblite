@@ -31,9 +31,10 @@ where
 			and l3.l_receiptdate > l3.l_commitdate
 	)
 	and s_nationkey = n_nationkey
-	and n_name = ':1'
+	and n_name = 'SAUDI ARABIA'
 group by
 	s_name
 order by
 	numwait desc,
-	s_name;
+	s_name
+limit 100;
