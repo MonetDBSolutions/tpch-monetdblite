@@ -8,6 +8,7 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+import org.openjdk.jmh.runner.options.TimeValue;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -68,13 +69,14 @@ public class TPCHMain {
                 populate(connectString, importPath);
                 break;
             case "evaluate":
-                if (args.length < 4) {
+                if (args.length < 3) {
                     displayHelp(1);
                     return;
                 }
                 connectString = args[1];
                 scaleFactor = args[2];
-                output = args[3];
+                if (args.length >= 4)
+                    output = args[3];
                 evaluate(connectString, scaleFactor, output);
                 break;
             default:
@@ -110,9 +112,21 @@ public class TPCHMain {
                 .measurementIterations(3)
                 .param("connectString", connectString)
                 .param("scaleFactor", scale_factor)
-                .resultFormat(ResultFormatType.CSV)
-                .result(output)
                 ;
+
+        if (output != null && output.length() > 0) {
+            optbuilder
+                    .resultFormat(ResultFormatType.CSV)
+                    .result(output)
+            ;
+        } else {
+            // if no output file given, run them quickly to see if they work at all
+            optbuilder
+                    .warmupIterations(0)
+                    .measurementIterations(1)
+                    .measurementTime(TimeValue.seconds(1))
+            ;
+        }
 
         Options opt = optbuilder.build();
 

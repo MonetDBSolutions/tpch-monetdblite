@@ -44,7 +44,7 @@ test -n "$scale_factor" || usage
 
 test -n "$connect_string" || usage
 
-test -n "$output" || usage
+#test -n "$output" || usage
 
 # REBUILD TOOL IF NECESSARY
 make -C "$home" jar
