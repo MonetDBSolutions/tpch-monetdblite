@@ -61,18 +61,20 @@ public class SqlitePopulator extends TPCHPopulater {
 					batched++;
 					if (batched == 1000) {
 						s.executeBatch();
+						count += batched;
 						batched = 0;
 					}
 				} else {
 					s.executeUpdate();
+					count++;
 				}
-				count++;
 			}
 			if (batched > 0) {
 				s.executeBatch();
+				count += batched;
 			}
 		} finally {
-			System.out.println(String.format("Wrote %d rows to %s", count, tableName));
+//			System.out.println(String.format("Wrote %d rows to %s", count, tableName));
 		}
 	}
 
