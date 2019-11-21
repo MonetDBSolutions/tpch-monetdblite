@@ -5,6 +5,8 @@ import nl.cwi.monetdb.TPCH.ConnectInfo;
 import java.io.*;
 import java.nio.file.Paths;
 import java.sql.*;
+import java.time.Duration;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class TPCHPopulater {
@@ -12,6 +14,8 @@ public class TPCHPopulater {
 	public void populate(ConnectInfo connectInfo, String importPath) throws Exception {
 		System.out.println(String.format("Starting to import into %s, user '%s' password '%s'",
 				connectInfo.getJdbcUrl(), connectInfo.getUser(), connectInfo.getPassword()));
+
+		long t0 = System.nanoTime();
 		try (
 				Connection con = connectInfo.connect();
 		) {
@@ -19,7 +23,9 @@ public class TPCHPopulater {
 			innerPopulate(connectInfo, importPath, con);
 			con.commit();
 		}
-		System.out.println("Import completed");
+		long t1 = System.nanoTime();
+		double d = (t1 - t0) / 1e9;
+		System.out.printf("Import completed in %.02fs%n", d);
 	}
 
 	protected void innerPopulate(ConnectInfo connectInfo, String importPath, Connection conn) throws SQLException, IOException {
@@ -49,14 +55,25 @@ public class TPCHPopulater {
 		return content.split(";");
 	}
 
+	private enum ColumnKind {
+		Num,
+		Date,
+		Text,
+	}
+
 	protected void copyData(Connection conn, String tableName, String importPath) throws SQLException, IOException {
 		// Figure out the column types
 		final int columnCount;
 		final boolean canBatch = conn.getMetaData().supportsBatchUpdates();
+		ColumnKind[] columnKind;
 		try (Statement s = conn.createStatement()) {
 			ResultSet rs = s.executeQuery("SELECT * FROM " + tableName + " WHERE FALSE");
 			ResultSetMetaData md = rs.getMetaData();
 			columnCount = md.getColumnCount();
+			columnKind = new ColumnKind[columnCount];
+			for (int i = 0; i < columnCount; i++) {
+				columnKind[i] = determineColumnKind(md, i + 1);
+			}
 		}
 
 		String update = "INSERT INTO " + tableName + " VALUES (";
@@ -78,7 +95,18 @@ public class TPCHPopulater {
 			while (null != (line = br.readLine())) {
 				String[] cells = line.split("\\|");
 				for (int i = 0; i < cells.length; i++) {
-					s.setString(i + 1, cells[i]);
+					switch (columnKind[i]) {
+						case Num:
+							s.setDouble(i + 1, Double.parseDouble(cells[i]));
+							break;
+						case Date:
+							Date d = Date.valueOf(cells[i]);
+							s.setDate(i + 1, d);
+							break;
+						case Text:
+							s.setString(i + 1, cells[i]);
+							break;
+					}
 				}
 				if (canBatch) {
 					s.addBatch();
@@ -97,8 +125,17 @@ public class TPCHPopulater {
 				s.executeBatch();
 				count += batched;
 			}
-		} finally {
-//			System.out.println(String.format("Wrote %d rows to %s", count, tableName));
 		}
+	}
+
+	private ColumnKind determineColumnKind(ResultSetMetaData md, int i) throws SQLException {
+		String typeName = md.getColumnTypeName(i).toLowerCase(Locale.US);
+		if (typeName.contains("int") || typeName.contains("numeric")) {
+			return ColumnKind.Num;
+		}
+		if (typeName.contains("date")) {
+			return ColumnKind.Date;
+		}
+		return ColumnKind.Text;
 	}
 }
