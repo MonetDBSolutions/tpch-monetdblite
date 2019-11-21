@@ -26,9 +26,13 @@ public abstract class DatabaseSystem {
         return driverClass;
     }
 
-    public abstract String fillInUser(String user, String password);
+    public String fillInUser(String user, String password) {
+        return user;
+    }
 
-    public abstract String fillInPassword(String user, String password);
+    public String fillInPassword(String user, String password) {
+        return password;
+    }
 
     public TPCHPopulater getPopulater() {
         return new TPCHPopulater();
