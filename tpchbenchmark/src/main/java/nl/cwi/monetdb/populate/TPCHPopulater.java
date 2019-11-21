@@ -38,7 +38,7 @@ public class TPCHPopulater {
 
 	String[] readSqlFromResource(String databaseName, String dataPath) {
 		// Surely there's a better way?
-		String resourceName = String.format("/schemas/%s/setup.sql", databaseName);
+		String resourceName = String.format("/sql/%s/setup.sql", databaseName);
 		InputStream schema = this.getClass().getResourceAsStream(resourceName);
 		if (schema == null) {
 			throw new IllegalArgumentException("Could not find " + resourceName + " on the classpath");

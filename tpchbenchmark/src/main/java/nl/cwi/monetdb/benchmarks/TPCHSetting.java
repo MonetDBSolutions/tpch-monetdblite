@@ -32,7 +32,7 @@ public class TPCHSetting {
 
 	String getQuery(DatabaseSystem databaseSystem, int i) {
 		// Ugly.  See also TPCHPopulator.initializationStatements
-		String resourceName = String.format("/queries/%s/%02d.sql", databaseSystem.getPrettyName(), i);
+		String resourceName = String.format("/sql/%s/%02d.sql", databaseSystem.getPrettyName(), i);
 		InputStream s = this.getClass().getResourceAsStream(resourceName);
 		if (s == null) {
 			throw new IllegalArgumentException("Could not find resource " + resourceName + " on classpath");
