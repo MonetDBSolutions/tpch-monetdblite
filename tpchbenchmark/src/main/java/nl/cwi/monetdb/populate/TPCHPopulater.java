@@ -5,7 +5,6 @@ import nl.cwi.monetdb.TPCH.ConnectInfo;
 import java.io.*;
 import java.nio.file.Paths;
 import java.sql.*;
-import java.time.Duration;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
