@@ -1,5 +1,7 @@
 package nl.cwi.monetdb.TPCH;
 
+import java.util.ArrayList;
+
 public class DatabaseSystemResolver {
 
     private static DatabaseSystem[] databaseSystems = new DatabaseSystem[]{
@@ -26,4 +28,11 @@ public class DatabaseSystemResolver {
     }
 
 
+    public static ArrayList<String> getPrefixes() {
+        ArrayList<String> prefixes = new ArrayList<>(databaseSystems.length);
+        for (DatabaseSystem db: databaseSystems) {
+            prefixes.add(db.getJdbcUrlPrefix());
+        }
+        return prefixes;
+    }
 }

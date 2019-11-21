@@ -22,15 +22,14 @@ public class TPCHMain {
     }
 
     private static void displayHelp(int status) {
-        String[] text = {
+        String[] text1 = {
                 "Use of JVM TPC-H benchmark tool:",
                 "    java -jar tpcbenchmark.jar populate [USER[/PASSWORD]@]JDBC_URL IMPORT_PATH",
                 "    java -jar tpcbenchmark.jar evaluate [USER[/PASSWORD]@]JDBC_URL SCALE_FACTOR OUTPUT_CSV_FILE",
                 "    java -jar tpcbenchmark.jar help",
                 "with JDBC_URL one of",
-                "    jdbc:h2:...",
-                "    jdbc:monetdb:embedded:...",
-                "    jdbc:monetdb:...",
+        };
+        String[] text2 = {
                 "for example,",
                 "    jdbc:h2:~/test,",
                 "    sa@jdbc:h2:~/test, ",
@@ -39,7 +38,13 @@ public class TPCHMain {
                 "and IMPORT_PATH a directory containing the generated orders.tbl, lineitem.tbl, etc.",
         };
         PrintStream s = status == 0 ? System.out : System.err;
-        for (String t : text) {
+        for (String t : text1) {
+            s.println(t);
+        }
+        for (String prefix: DatabaseSystemResolver.getPrefixes()) {
+            s.println("    " + prefix + "...");
+        }
+        for (String t : text2) {
             s.println(t);
         }
         System.exit(status);
