@@ -14,7 +14,7 @@ public class TPCHPopulater {
 		System.out.println(String.format("Starting to import into %s, user '%s' password '%s'",
 				connectInfo.getJdbcUrl(), connectInfo.getUser(), connectInfo.getPassword()));
 
-		long t0 = System.nanoTime();
+		double t0 = System.nanoTime();
 		try (
 				Connection con = connectInfo.connect();
 		) {
@@ -22,8 +22,8 @@ public class TPCHPopulater {
 			innerPopulate(connectInfo, importPath, con);
 			con.commit();
 		}
-		long t1 = System.nanoTime();
-		double d = (t1 - t0) / 1e9;
+		double t1 = System.nanoTime();
+		double d = (t1 - t0) / 1.0e9;
 		System.out.printf("Import completed in %.02fs%n", d);
 	}
 
@@ -32,12 +32,22 @@ public class TPCHPopulater {
 		try (Statement st = conn.createStatement()) {
 			for (String s : statements) {
 				s = s.trim();
+				String firstLine = s;
+				int idxNewline = s.indexOf('\n');
+				if (idxNewline < 0)
+					firstLine = s;
+				else
+					firstLine = s.substring(0, idxNewline) + " ...";
+				double t0 = System.nanoTime();
 				if (s.startsWith("@COPY ")) {
 					copyData(conn, s.substring(6), importPath);
 				} else {
 					String fixed = s.replaceAll("@DATAPATH@", importPath) + ";";
 					st.executeUpdate(fixed);
 				}
+				double t1 = System.nanoTime();
+				double d = (t1 - t0) / 1.0e9;
+				System.out.printf("%s (%7.2fs)%n", firstLine, d);
 			}
 		}
 	}
