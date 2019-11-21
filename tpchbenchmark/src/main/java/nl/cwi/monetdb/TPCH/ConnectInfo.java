@@ -23,7 +23,7 @@ public class ConnectInfo {
             int atIdx = connectString.indexOf("@jdbc:");
             jdbcUrl = connectString.substring(atIdx + 1);
             int slashIdx = connectString.indexOf("/");
-            if (slashIdx < atIdx) {
+            if (slashIdx >= 0 && slashIdx < atIdx) {
                 user = connectString.substring(0, slashIdx);
                 password = connectString.substring(slashIdx + 1, atIdx);
             } else {
